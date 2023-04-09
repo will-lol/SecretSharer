@@ -1,35 +1,59 @@
 import { createSignal, createEffect, Switch, Match, Show } from "solid-js";
 import { createFileUploader, UploadFile } from "@solid-primitives/upload";
 
-function toBinaryString(string: string) {
-  const codeUnits = Uint16Array.from(
-    { length: string.length },
-    (element, index) => string.charCodeAt(index)
-  );
-  const charCodes = new Uint8Array(codeUnits.buffer);
-
-  let result = "";
-  charCodes.forEach((char) => {
-    result += String.fromCharCode(char);
-  });
-  return result;
+interface payload {
+  type: "file" | "text";
+  metadata?: {
+    name: string;
+  };
+  data: string;
 }
 
-function fromBinaryString(binary: string) {
-  const bytes = Uint8Array.from({ length: binary.length }, (element, index) =>
-    binary.charCodeAt(index)
-  );
-  const charCodes = new Uint16Array(bytes.buffer);
+interface payloadParcel {
+  iv: number[],
+  data: string
+}
 
-  let result = "";
-  charCodes.forEach((char) => {
-    result += String.fromCharCode(char);
-  });
-  return result;
+function toBinaryString(array: Uint8Array) {
+  const stringArray: string[] = [];
+  for (const i of array) {
+    stringArray.push(String.fromCharCode(i));
+  }
+  return stringArray.join("");
+}
+
+function compareArray(array1: any[], array2: any[]) {
+  if (array1.length != array2.length) {
+    return false;
+  }
+  if (array1 == array2) {
+    return true;
+  }
+  let flag = false;
+  let num = 0;
+  while (!flag) {
+    if (!(array1[num] == array2[num])) {
+      flag = true;
+    }
+    if (num > array1.length-1) {
+      break;
+    }
+    num++
+  }
+  return flag;
+}
+
+function toUintArray(string: string) {
+  const array = new Uint8Array(string.length);
+  for (let i = 0; i < string.length; i++) {
+    array[i] = string.charCodeAt(i);
+  }
+  return array;
 }
 
 export default function Sharer() {
   let button: HTMLButtonElement;
+  let textArea: HTMLTextAreaElement;
 
   const [text, setText] = createSignal("");
   const [submitting, setSubmitting] = createSignal(false);
@@ -52,13 +76,7 @@ export default function Sharer() {
     }
   }
 
-  interface payload {
-    type: "file" | "text";
-    metadata?: {
-      name: string;
-    };
-    data: string;
-  }
+
 
   async function submit(e: Event) {
     e.preventDefault();
@@ -75,8 +93,8 @@ export default function Sharer() {
         data: await submittedFile.file.text(),
       };
       payload = JSON.stringify(data);
-    } else if (textValidator(text())) {
-      const submittedText = text();
+    } else if (textValidator(textArea.value)) {
+      const submittedText = textArea.value;
       const data: payload = {
         type: "text",
         data: submittedText,
@@ -87,23 +105,33 @@ export default function Sharer() {
       return;
     }
 
+    //encode
     const encoder = new TextEncoder();
     const payloadBuffer = encoder.encode(payload);
     const key = await globalThis.crypto.subtle.generateKey({ name: "AES-GCM", length: 128 }, true, ["encrypt", "decrypt"]);
+    const exportedKey = await globalThis.crypto.subtle.exportKey("jwk", key);
     const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
     const encrypted = await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, payloadBuffer);
-    const decoder = new TextDecoder();
-    const encryptedData = decoder.decode(encrypted);
-    const b64Encoded = btoa(toBinaryString(encryptedData));
-    const exportedKey = await globalThis.crypto.subtle.exportKey("jwk", key);
+    const encryptedArray = new Uint8Array(encrypted);
+    const encryptedB64String = btoa(toBinaryString(encryptedArray));
 
-    const b64Decoded = fromBinaryString(atob(b64Encoded));
-    const decodedBuffer = encoder.encode(b64Decoded);
+    const finalPayload: payloadParcel = {
+      iv: Array.from(iv),
+      data: encryptedB64String
+    }
+
+    /*const deb64 = atob(encryptedB64String);
+    const decodedArray = toUintArray(deb64);
+
     const importedKey = await globalThis.crypto.subtle.importKey("jwk", exportedKey, "AES-GCM", true, ["encrypt", "decrypt"]);
-    const decrypted = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, importedKey, decodedBuffer);
+    const decrypted = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, importedKey, decodedArray);
 
-    console.log(decrypted);
+    const decoder = new TextDecoder();
+    const decryptedString = decoder.decode(decrypted);
+
+    console.log(decryptedString);*/
   }
+
 
   createEffect(() => {
     if (textValidator(text()) || filesValidator(files())) {
@@ -117,6 +145,7 @@ export default function Sharer() {
     <form onSubmit={submit}>
       <div class="w-full h-96 relative flex justify-center items-center ">
         <textarea
+          ref={textArea}
           autocomplete="off"
           disabled={filesValidator(files()) || submitting()}
           onKeyPress={(el) => {
