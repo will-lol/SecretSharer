@@ -103,7 +103,7 @@ export default function Receiver() {
 
   return (
     <>
-      <div class="w-full h-96 relative flex justify-center items-center border border-solid dark:border-black dark:bg-gray-800 shadow-inner p-4">
+      <div class="w-full h-96 relative flex justify-center items-center border border-solid dark:border-black dark:bg-gray-800 shadow-inner p-3">
         <Switch>
           <Match when={recieveStatus() != "received"}>
             <div class="absolute w-full h-full bg-gray-400 bg-opacity-20 flex justify-center items-center">

@@ -144,7 +144,7 @@ export default function Sharer() {
             }
           }}
           placeholder="Paste or type here"
-          class="disabled:placeholder-transparent disabled:text-transparent dark:bg-gray-800 peer w-full h-full border border-solid dark:border-black shadow-inner p-4"
+          class="disabled:placeholder-transparent disabled:text-transparent dark:bg-gray-800 peer w-full h-full border border-solid dark:border-black shadow-inner p-3"
         ></textarea>
         <Switch>
           <Match when={submitState() == "idle"}>
