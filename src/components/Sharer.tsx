@@ -42,6 +42,7 @@ export default function Sharer() {
 
   const [text, setText] = createSignal("");
   const [submitState, setSubmitState] = createSignal("idle");
+  const [link, setLink] = createSignal("");
 
   const { files, selectFiles } = createFileUploader({
     multiple: false,
@@ -115,12 +116,13 @@ export default function Sharer() {
       method: "POST",
       body: JSON.stringify({ data: btoa(JSON.stringify(finalPayload)) }),
     });
-    const UUID = response.parse(await result.json()).UUID;
+    const UUID = await result.json() as { UUID: string };
     if (result.status == 200) {
       const link = new URL(window.location.origin + "/receive/");
-      const data: linkData = { key: exportedKey, uuid: UUID };
+      const data: linkData = { key: exportedKey, uuid: UUID.UUID };
       link.searchParams.set("data", btoa(JSON.stringify(data)));
       navigator.clipboard.writeText(link.href);
+      setLink(link.href);
       setSubmitState("submitted");
     }
   }
@@ -148,39 +150,47 @@ export default function Sharer() {
             }
           }}
           placeholder="Paste or type here"
-          class="disabled:placeholder-transparent disabled:text-transparent peer w-full h-full border border-solid shadow-inner p-4"
+          class="disabled:placeholder-transparent disabled:text-transparent dark:bg-gray-800 peer w-full h-full border border-solid dark:border-black shadow-inner p-4"
         ></textarea>
-
-        <Show when={!(text().length > 0)}>
-          <div class="peer-focus:hidden block w-full h-full pointer-events-none bg-gray-500  bg-opacity-10 absolute"></div>
-          <div class="p-10 peer-focus:hidden absolute text-gray-600">
-            <Switch>
-              <Match when={!filesValidator(files())}>
-                <div>
-                  Click the text box or{" "}
-                  <a
-                    class="underline text-black cursor-pointer"
-                    onClick={() => {
-                      selectFiles((files) => {});
-                    }}
-                  >
-                    browse
-                  </a>{" "}
-                  for file
-                </div>
-                <div class="text-gray-500 text-center text-sm">
-                  Max. 5000 characters or 5kb file
-                </div>
-              </Match>
-              <Match when={filesValidator(files())}>
-                <div class="flex justify-center items-center flex-col">
-                  <img class="w-20" src="fileIcon.svg" alt="" />
-                  <span class="mt-4">{files()[0].name}</span>
-                </div>
-              </Match>
-            </Switch>
-          </div>
-        </Show>
+        <Switch>
+          <Match when={submitState() == "idle"}>
+            <Show when={!(text().length > 0)}>
+              <div class="peer-focus:hidden block w-full h-full pointer-events-none bg-gray-500  bg-opacity-10 absolute"></div>
+              <div class="p-10 peer-focus:hidden absolute text-gray-600 dark:text-gray-100">
+                <Switch>
+                  <Match when={!filesValidator(files())}>
+                    <div class="text-center">
+                      Click the text box or{" "}
+                      <a
+                        class="underline text-black dark:text-white cursor-pointer"
+                        onClick={() => {
+                          selectFiles((files) => {});
+                        }}
+                      >
+                        browse
+                      </a>{" "}
+                      for file
+                    </div>
+                    <div class="text-gray-500 dark:text-gray-400 text-center text-sm">
+                      Max. 5000 characters or 5kb file
+                    </div>
+                  </Match>
+                  <Match when={filesValidator(files())}>
+                    <div class="flex justify-center items-center flex-col">
+                      <img class="w-20" src="fileIcon.svg" alt="" />
+                      <span class="mt-4">{files()[0].name}</span>
+                    </div>
+                  </Match>
+                </Switch>
+              </div>
+            </Show>
+          </Match>
+          <Match when={submitState() == "submitted"}>
+            <div class="absolute text-gray-600 dark:text-gray-100 max-w-sm text-center break-all m-4">
+              {link()}
+            </div>
+          </Match>
+        </Switch>
       </div>
       <button
         disabled={submitState() != "idle"}
@@ -190,11 +200,7 @@ export default function Sharer() {
         <Switch>
           <Match when={submitState() == "submitting"}>
             Submitting...{" "}
-            <img
-              class="ml-3 w-4 animate-spin"
-              src="loader.svg"
-              alt=""
-            />
+            <img class="ml-3 w-4 animate-spin" src="loader.svg" alt="" />
           </Match>
           <Match when={submitState() == "idle"}>Submit</Match>
           <Match when={submitState() == "submitted"}>

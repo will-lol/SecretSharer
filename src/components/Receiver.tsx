@@ -36,10 +36,10 @@ export default function Receiver() {
       setRecieveStatus("failed");
       return;
     }
-    console.log(atob(keyParam));
     const dataParamDecoded = JSON.parse(atob(keyParam)) as linkData;
     const keyDecoded = dataParamDecoded.key as JsonWebKey;
     const uuid = dataParamDecoded.uuid;
+    console.log(uuid);
     const uuidSchema = z.string().uuid();
     if (uuidSchema.safeParse(uuid).success) {
       const fetched = await fetch(
@@ -88,6 +88,8 @@ export default function Receiver() {
 
       setData(decryptedObjParsed.data);
       setRecieveStatus("received");
+    } else {
+      setRecieveStatus("failed")
     }
   }
 
@@ -101,7 +103,7 @@ export default function Receiver() {
 
   return (
     <>
-      <div class="w-full h-96 relative flex justify-center items-center border border-solid shadow-inner p-4">
+      <div class="w-full h-96 relative flex justify-center items-center border border-solid dark:border-black dark:bg-gray-800 shadow-inner p-4">
         <Switch>
           <Match when={recieveStatus() != "received"}>
             <div class="absolute w-full h-full bg-gray-400 bg-opacity-20 flex justify-center items-center">
@@ -118,7 +120,7 @@ export default function Receiver() {
                     Unlocking...{" "}
                     <img
                       class="inline ml-2 w-4 animate-spin"
-                      src="loader.svg"
+                      src={`${window.location.origin}/loader.svg`}
                       alt=""
                     />
                   </Match>
@@ -137,7 +139,7 @@ export default function Receiver() {
               <Match when={data().type == "file"}>
                 <div class="w-full h-full flex justify-center items-center ">
                   <div class="flex justify-center items-center flex-col">
-                    <img class="w-20" src="fileIcon.svg" alt="" />
+                    <img class="w-20" src={`${window.location.origin}/fileIcon.svg`} alt="" />
                     <span class="mt-4 mb-3">{data().metadata?.name}</span>
                     <Button onClick={downloadFile}>Download file</Button>
                   </div>
