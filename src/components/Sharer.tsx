@@ -175,7 +175,7 @@ export default function Sharer() {
               </Match>
               <Match when={filesValidator(files())}>
                 <div class="flex justify-center items-center flex-col">
-                  <img class="w-20" src="../../public/fileIcon.svg" alt="" />
+                  <img class="w-20" src="fileIcon.svg" alt="" />
                   <span class="mt-4">{files()[0].name}</span>
                 </div>
               </Match>
@@ -193,7 +193,7 @@ export default function Sharer() {
             Submitting...{" "}
             <img
               class="ml-3 w-4 animate-spin"
-              src="../../public/loader.svg"
+              src="loader.svg"
               alt=""
             />
           </Match>

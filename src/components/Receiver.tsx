@@ -118,7 +118,7 @@ export default function Receiver() {
                     Unlocking...{" "}
                     <img
                       class="inline ml-2 w-4 animate-spin"
-                      src="../../public/loader.svg"
+                      src="loader.svg"
                       alt=""
                     />
                   </Match>
@@ -137,7 +137,7 @@ export default function Receiver() {
               <Match when={data().type == "file"}>
                 <div class="w-full h-full flex justify-center items-center ">
                   <div class="flex justify-center items-center flex-col">
-                    <img class="w-20" src="../../public/fileIcon.svg" alt="" />
+                    <img class="w-20" src="fileIcon.svg" alt="" />
                     <span class="mt-4 mb-3">{data().metadata?.name}</span>
                     <Button onClick={downloadFile}>Download file</Button>
                   </div>
