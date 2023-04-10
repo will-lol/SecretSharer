@@ -95,7 +95,8 @@ export default function Receiver() {
 
   function downloadFile() {
     const elem = document.createElement('a');
-    const file = new File([data().data], data().metadata!.name);
+    const array = toUintArray(data().data);
+    const file = new File([array], data().metadata!.name)
     elem.href = URL.createObjectURL(file);
     elem.click();
     URL.revokeObjectURL(elem.href);

@@ -69,12 +69,14 @@ export default function Sharer() {
     let payload: string;
     if (filesValidator(files())) {
       const submittedFile = files()[0];
+      const string = toBinaryString(new Uint8Array(await submittedFile.file.arrayBuffer()));
+      
       const data: payload = {
         type: "file",
         metadata: {
           name: submittedFile.name,
         },
-        data: await submittedFile.file.text(),
+        data: string,
       };
       payload = JSON.stringify(data);
     } else if (textValidator(textArea.value)) {
