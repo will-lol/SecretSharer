@@ -41,62 +41,61 @@ export default function Receiver() {
     const uuid = dataParamDecoded.uuid;
     console.log(uuid);
     const uuidSchema = z.string().uuid();
-    if (uuidSchema.safeParse(uuid).success) {
-      const fetched = await fetch(
-        globalThis.location.origin + "/api/secrets/" + uuid
-      );
-      if (fetched.status == 404) {
-        setRecieveStatus("noexist");
-      }
-      const dataParsed = encryptedData.safeParse(await fetched.json());
-      if (!dataParsed.success) {
-        setRecieveStatus("failed");
-        return;
-      }
-      const payloadParcelParsed = payloadParcelParser.safeParse(
-        JSON.parse(atob(dataParsed.data.Data))
-      );
-      if (!payloadParcelParsed.success) {
-        setRecieveStatus("failed");
-      }
-      const payloadParcel = payloadParcelParsed.data;
-      const iv = new Uint8Array(payloadParcel.iv);
-
-      const deb64 = atob(payloadParcel.data);
-      const decodedArray = toUintArray(deb64);
-
-      const importedKey = await globalThis.crypto.subtle.importKey(
-        "jwk",
-        keyDecoded,
-        "AES-GCM",
-        true,
-        ["encrypt", "decrypt"]
-      );
-      const decrypted = await globalThis.crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: iv },
-        importedKey,
-        decodedArray
-      );
-
-      const decoder = new TextDecoder();
-      const decryptedObjParsed = payload.safeParse(
-        JSON.parse(decoder.decode(decrypted))
-      );
-      if (!decryptedObjParsed.success) {
-        setRecieveStatus("failed");
-      }
-
-      setData(decryptedObjParsed.data);
-      setRecieveStatus("received");
-    } else {
-      setRecieveStatus("failed")
+    if (!uuidSchema.safeParse(uuid).success) {
+      setRecieveStatus("failed");
     }
+    const fetched = await fetch(
+      globalThis.location.origin + "/api/secrets/" + uuid
+    );
+    if (fetched.status == 404) {
+      setRecieveStatus("noexist");
+    }
+    const dataParsed = encryptedData.safeParse(await fetched.json());
+    if (!dataParsed.success) {
+      setRecieveStatus("failed");
+      return;
+    }
+    const payloadParcelParsed = payloadParcelParser.safeParse(
+      JSON.parse(atob(dataParsed.data.Data))
+    );
+    if (!payloadParcelParsed.success) {
+      setRecieveStatus("failed");
+    }
+    const payloadParcel = payloadParcelParsed.data;
+    const iv = new Uint8Array(payloadParcel.iv);
+
+    const deb64 = atob(payloadParcel.data);
+    const decodedArray = toUintArray(deb64);
+
+    const importedKey = await globalThis.crypto.subtle.importKey(
+      "jwk",
+      keyDecoded,
+      "AES-GCM",
+      true,
+      ["encrypt", "decrypt"]
+    );
+    const decrypted = await globalThis.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      importedKey,
+      decodedArray
+    );
+
+    const decoder = new TextDecoder();
+    const decryptedObjParsed = payload.safeParse(
+      JSON.parse(decoder.decode(decrypted))
+    );
+    if (!decryptedObjParsed.success) {
+      setRecieveStatus("failed");
+    }
+
+    setData(decryptedObjParsed.data);
+    setRecieveStatus("received");
   }
 
   function downloadFile() {
-    const elem = document.createElement('a');
+    const elem = document.createElement("a");
     const array = toUintArray(data().data);
-    const file = new File([array], data().metadata!.name)
+    const file = new File([array], data().metadata!.name);
     elem.href = URL.createObjectURL(file);
     elem.click();
     URL.revokeObjectURL(elem.href);
@@ -140,7 +139,11 @@ export default function Receiver() {
               <Match when={data().type == "file"}>
                 <div class="w-full h-full flex justify-center items-center ">
                   <div class="flex justify-center items-center flex-col">
-                    <img class="w-20" src={`${window.location.origin}/fileIcon.svg`} alt="" />
+                    <img
+                      class="w-20"
+                      src={`${window.location.origin}/fileIcon.svg`}
+                      alt=""
+                    />
                     <span class="mt-4 mb-3">{data().metadata?.name}</span>
                     <Button onClick={downloadFile}>Download file</Button>
                   </div>
