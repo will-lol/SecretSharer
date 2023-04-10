@@ -1,7 +1,7 @@
 import solid from "solid-start/vite";
-import cloudflare from "solid-start-cloudflare-pages";
+import solidStartVercel from "solid-start-vercel";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [solid({ adapter: cloudflare({}) })],
+  plugins: [solid({ adapter: solidStartVercel({}) })],
 });
