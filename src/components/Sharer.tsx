@@ -1,5 +1,6 @@
 import { createSignal, createEffect, Switch, Match, Show } from "solid-js";
 import { createFileUploader, UploadFile } from "@solid-primitives/upload";
+import { response } from "../routes/api/secrets";
 
 interface payload {
   type: "file" | "text";
@@ -9,12 +10,17 @@ interface payload {
   data: string;
 }
 
-interface payloadParcel {
-  iv: number[],
-  data: string
+export interface payloadParcel {
+  iv: number[];
+  data: string;
 }
 
-function toBinaryString(array: Uint8Array) {
+export interface linkData {
+  key: JsonWebKey;
+  uuid: string;
+}
+
+export function toBinaryString(array: Uint8Array) {
   const stringArray: string[] = [];
   for (const i of array) {
     stringArray.push(String.fromCharCode(i));
@@ -22,28 +28,7 @@ function toBinaryString(array: Uint8Array) {
   return stringArray.join("");
 }
 
-function compareArray(array1: any[], array2: any[]) {
-  if (array1.length != array2.length) {
-    return false;
-  }
-  if (array1 == array2) {
-    return true;
-  }
-  let flag = false;
-  let num = 0;
-  while (!flag) {
-    if (!(array1[num] == array2[num])) {
-      flag = true;
-    }
-    if (num > array1.length-1) {
-      break;
-    }
-    num++
-  }
-  return flag;
-}
-
-function toUintArray(string: string) {
+export function toUintArray(string: string) {
   const array = new Uint8Array(string.length);
   for (let i = 0; i < string.length; i++) {
     array[i] = string.charCodeAt(i);
@@ -56,7 +41,7 @@ export default function Sharer() {
   let textArea: HTMLTextAreaElement;
 
   const [text, setText] = createSignal("");
-  const [submitting, setSubmitting] = createSignal(false);
+  const [submitState, setSubmitState] = createSignal("idle");
 
   const { files, selectFiles } = createFileUploader({
     multiple: false,
@@ -76,11 +61,9 @@ export default function Sharer() {
     }
   }
 
-
-
   async function submit(e: Event) {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmitState("submitting");
 
     let payload: string;
     if (filesValidator(files())) {
@@ -108,30 +91,40 @@ export default function Sharer() {
     //encode
     const encoder = new TextEncoder();
     const payloadBuffer = encoder.encode(payload);
-    const key = await globalThis.crypto.subtle.generateKey({ name: "AES-GCM", length: 128 }, true, ["encrypt", "decrypt"]);
+    const key = await globalThis.crypto.subtle.generateKey(
+      { name: "AES-GCM", length: 128 },
+      true,
+      ["encrypt", "decrypt"]
+    );
     const exportedKey = await globalThis.crypto.subtle.exportKey("jwk", key);
     const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
-    const encrypted = await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, payloadBuffer);
+    const encrypted = await globalThis.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      payloadBuffer
+    );
     const encryptedArray = new Uint8Array(encrypted);
     const encryptedB64String = btoa(toBinaryString(encryptedArray));
 
     const finalPayload: payloadParcel = {
       iv: Array.from(iv),
-      data: encryptedB64String
+      data: encryptedB64String,
+    };
+
+    const result = await fetch("api/secrets", {
+      method: "POST",
+      body: JSON.stringify({ data: btoa(JSON.stringify(finalPayload)) }),
+    });
+    const UUID = response.parse(await result.json()).UUID;
+    if (result.status == 200) {
+      console.log("Sent it!");
+      const link = new URL(window.location.origin + "/receive/");
+      const data: linkData = { key: exportedKey, uuid: UUID };
+      link.searchParams.set("data", btoa(JSON.stringify(data)));
+      navigator.clipboard.writeText(link.href);
+      setSubmitState("submitted");
     }
-
-    /*const deb64 = atob(encryptedB64String);
-    const decodedArray = toUintArray(deb64);
-
-    const importedKey = await globalThis.crypto.subtle.importKey("jwk", exportedKey, "AES-GCM", true, ["encrypt", "decrypt"]);
-    const decrypted = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, importedKey, decodedArray);
-
-    const decoder = new TextDecoder();
-    const decryptedString = decoder.decode(decrypted);
-
-    console.log(decryptedString);*/
   }
-
 
   createEffect(() => {
     if (textValidator(text()) || filesValidator(files())) {
@@ -147,7 +140,7 @@ export default function Sharer() {
         <textarea
           ref={textArea}
           autocomplete="off"
-          disabled={filesValidator(files()) || submitting()}
+          disabled={filesValidator(files()) || submitState() != "idle"}
           onKeyPress={(el) => {
             if (!el.currentTarget.value) {
               setText("");
@@ -158,46 +151,56 @@ export default function Sharer() {
           placeholder="Paste or type here"
           class="disabled:placeholder-transparent disabled:text-transparent peer w-full h-full border border-solid shadow-inner p-4"
         ></textarea>
-        <div class="peer-focus:hidden block w-full h-full pointer-events-none bg-gray-500  bg-opacity-10 absolute"></div>
-        <div class="p-10 peer-focus:hidden absolute text-gray-600">
-          <Switch>
-            <Match when={!filesValidator(files())}>
-              <div>
-                Click the text box or{" "}
-                <a
-                  class="underline text-black cursor-pointer"
-                  onClick={() => {
-                    selectFiles((files) => {});
-                  }}
-                >
-                  browse
-                </a>{" "}
-                for file
-              </div>
-              <div class="text-gray-500 text-center text-sm">
-                Max. 5000 characters or 5kb file
-              </div>
-            </Match>
-            <Match when={filesValidator(files())}>
-              <div class="flex justify-center items-center flex-col">
-                <img class="w-20" src="fileIcon.svg" alt="" />
-                <span class="mt-4">{files()[0].name}</span>
-              </div>
-            </Match>
-          </Switch>
-        </div>
+
+        <Show when={!(text().length > 0)}>
+          <div class="peer-focus:hidden block w-full h-full pointer-events-none bg-gray-500  bg-opacity-10 absolute"></div>
+          <div class="p-10 peer-focus:hidden absolute text-gray-600">
+            <Switch>
+              <Match when={!filesValidator(files())}>
+                <div>
+                  Click the text box or{" "}
+                  <a
+                    class="underline text-black cursor-pointer"
+                    onClick={() => {
+                      selectFiles((files) => {});
+                    }}
+                  >
+                    browse
+                  </a>{" "}
+                  for file
+                </div>
+                <div class="text-gray-500 text-center text-sm">
+                  Max. 5000 characters or 5kb file
+                </div>
+              </Match>
+              <Match when={filesValidator(files())}>
+                <div class="flex justify-center items-center flex-col">
+                  <img class="w-20" src="../../public/fileIcon.svg" alt="" />
+                  <span class="mt-4">{files()[0].name}</span>
+                </div>
+              </Match>
+            </Switch>
+          </div>
+        </Show>
       </div>
       <button
-        disabled={submitting()}
+        disabled={submitState() != "idle"}
         ref={button}
         class="w-full h-10 bg-blue-500 text-white font-bold inline-flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-slate-400 disabled:pointer-events-none dark:focus:ring-offset-slate-900 data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-slate-800"
       >
         <Switch>
-          <Match when={submitting()}>
+          <Match when={submitState() == "submitting"}>
             Submitting...{" "}
-            <img class="ml-3 w-4 animate-spin" src="loader.svg" alt="" />
+            <img
+              class="ml-3 w-4 animate-spin"
+              src="../../public/loader.svg"
+              alt=""
+            />
           </Match>
-          <Match when={!submitting()}>Submit</Match>
+          <Match when={submitState() == "idle"}>Submit</Match>
+          <Match when={submitState() == "submitted"}>
+            Submitted and link copied!
+          </Match>
         </Switch>
       </button>
     </form>
