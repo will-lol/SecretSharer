@@ -129,14 +129,6 @@ export default function Sharer() {
     }
   }
 
-  createEffect(() => {
-    if (textValidator(text()) || filesValidator(files())) {
-      button.disabled = false;
-    } else {
-      button.disabled = true;
-    }
-  });
-
   return (
     <form onSubmit={submit}>
       <div class="w-full h-96 relative flex justify-center items-center ">
@@ -195,7 +187,7 @@ export default function Sharer() {
         </Switch>
       </div>
       <button
-        disabled={submitState() != "idle"}
+        disabled={submitState() != "idle" || !(textValidator(text()) || filesValidator(files()))}
         ref={button}
         class="w-full h-10 bg-blue-500 text-white font-bold inline-flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-slate-400 disabled:pointer-events-none dark:focus:ring-offset-slate-900 data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-slate-800"
       >
