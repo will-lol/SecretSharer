@@ -117,7 +117,6 @@ export default function Sharer() {
     });
     const UUID = response.parse(await result.json()).UUID;
     if (result.status == 200) {
-      console.log("Sent it!");
       const link = new URL(window.location.origin + "/receive/");
       const data: linkData = { key: exportedKey, uuid: UUID };
       link.searchParams.set("data", btoa(JSON.stringify(data)));
