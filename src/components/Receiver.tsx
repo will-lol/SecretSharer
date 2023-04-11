@@ -150,7 +150,7 @@ export default function Receiver() {
                 </div>
               </Match>
               <Match when={data().type == "text"}>
-                <div class="w-full h-full p-4">{data().data}</div>
+                <div class="w-full h-full">{data().data}</div>
               </Match>
             </Switch>
           </Match>
