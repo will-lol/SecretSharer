@@ -20,7 +20,7 @@ const tokenShape = z.object({ current: z.string(), next: z.string() });
 
 let signingKey: ReturnType<typeof tokenShape.parse> | undefined = undefined;
 
-async function getSigningKeys() {
+export async function getSigningKeys() {
   const req = await fetch("https://qstash.upstash.io/v1/keys", {
     headers: { "Authorization": `Bearer ${process.env.QSTASH_TOKEN}` },
   })
@@ -59,6 +59,7 @@ export async function POST(event: APIEvent) {
 
   {
     const signature = event.request.headers.get("upstash-signature");
+    console.log(signature);
     if (signature) {
       if (signingKey = undefined) {
         signingKey = await getSigningKeys();
