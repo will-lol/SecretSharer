@@ -1,6 +1,7 @@
 import { APIEvent } from "solid-start";
 import { z } from "zod";
 import { connect } from "@planetscale/database";
+import { Client } from "@upstash/qstash";
 
 const request = z.object({
   data: z.string(),
@@ -30,19 +31,8 @@ export async function POST(event: APIEvent) {
     `INSERT INTO Secrets VALUES ("${UUID}", "${requestData}");`
   );
   if (results.rowsAffected == 1) {
-    const resultScheduleDelete = await fetch(
-      `${process.env.QSTASH_URL}${process.env.ORIGIN}api/secrets/${UUID}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.QSTASH_TOKEN}`,
-          "Upstash-Delay": "5s",
-        },
-      }
-    );
-    if (resultScheduleDelete.status == 201) {
-      return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
-    }
+    const c = new Client({token: process.env.QSTASH_TOKEN!});
+    const res = await c.publish({url: `${process.env.ORIGIN}api/secrets/${UUID}`, delay: 5});
   } 
   return new Response("Internal server error", { status: 500 });
 }
