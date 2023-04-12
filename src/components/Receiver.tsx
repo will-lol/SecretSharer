@@ -36,7 +36,13 @@ export default function Receiver() {
       setRecieveStatus("failed");
       return;
     }
-    const dataParamDecoded = JSON.parse(atob(keyParam)) as linkData;
+    let dataParamDecoded: linkData
+    try {
+      dataParamDecoded = JSON.parse(atob(keyParam)) as linkData;
+    } catch {
+      setRecieveStatus("failed");
+      return;
+    }
     const keyDecoded = dataParamDecoded.key as JsonWebKey;
     const uuid = dataParamDecoded.uuid;
     console.log(uuid);
