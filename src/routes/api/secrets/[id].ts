@@ -80,12 +80,14 @@ export async function POST(event: APIEvent) {
     const signature = event.request.headers.get("upstash-signature");
     console.log(signature);
     if (signature) {
-      if ((signingKey = undefined)) {
-        signingKey = await getSigningKeys();
+      if (signingKey == undefined) {
+        signingKey = tokenShape.parse(
+          await fetch("https://qstash.upstash.io/v1/keys", {
+            headers: { Authorization: `Bearer ${process.env.QSTASH_TOKEN}` },
+          }).then((res) => res.json())
+        );
       }
-      console.log(signingKey);
       const secret = new TextEncoder().encode(signingKey!.current);
-      console.log(secret);
       const { payload, protectedHeader } = await jwtVerify(signature, secret);
       console.log(payload);
       console.log(protectedHeader);
