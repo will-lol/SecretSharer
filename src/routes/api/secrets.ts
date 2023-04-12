@@ -40,9 +40,7 @@ export async function POST(event: APIEvent) {
         },
       }
     );
-    if (resultScheduleDelete.status == 200) {
-      return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
-    }
+    return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
   } 
   return new Response("Internal server error", { status: 500 });
 }
