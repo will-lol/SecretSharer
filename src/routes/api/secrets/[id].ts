@@ -33,7 +33,7 @@ export async function GET({ params }: APIEvent) {
 
 export async function POST(event: APIEvent) {
   const params = event.params;
-  console.log(event.request.headers);
+  console.log(event.request.headers.get("upstash-signature"));
   const parameter = params.id;
   const conn = connect(config);
   const resultsDelete = await conn.execute("DELETE FROM Secrets WHERE SecretID=\"" + parameter + "\"");
