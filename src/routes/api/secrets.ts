@@ -28,7 +28,6 @@ export async function POST(event: APIEvent) {
   const results = await conn.execute(
     `INSERT INTO Secrets VALUES ("${UUID}", "${requestData}");`
   );
-  console.log(results);
   if (results.rowsAffected == 1) {
     const resultScheduleDelete = await fetch(
       `${process.env.QSTASH_URL}${process.env.ORIGIN}api/secrets/${UUID}`,
@@ -40,8 +39,9 @@ export async function POST(event: APIEvent) {
         },
       }
     );
-    console.log(resultScheduleDelete.status);
-    return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
+    if (resultScheduleDelete.status == 201) {
+      return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
+    }
   } 
   return new Response("Internal server error", { status: 500 });
 }
