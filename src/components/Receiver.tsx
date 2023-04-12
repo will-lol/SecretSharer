@@ -45,7 +45,6 @@ export default function Receiver() {
     }
     const keyDecoded = dataParamDecoded.key as JsonWebKey;
     const uuid = dataParamDecoded.uuid;
-    console.log(uuid);
     const uuidSchema = z.string().uuid();
     if (!uuidSchema.safeParse(uuid).success) {
       setRecieveStatus("failed");
