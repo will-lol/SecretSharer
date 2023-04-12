@@ -114,7 +114,7 @@ export default function Receiver() {
               >
                 <Switch>
                   <Match when={recieveStatus() == "idle"}>
-                    Unlock secret and remove from servers
+                    <span class="sm:w-auto w-40 inline-block">Unlock secret and remove from servers</span>
                   </Match>
                   <Match when={recieveStatus() == "receiving"}>
                     Unlocking...{" "}
