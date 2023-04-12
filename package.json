@@ -20,6 +20,7 @@
     "@solid-primitives/upload": "^0.0.111",
     "@solidjs/meta": "^0.28.2",
     "@solidjs/router": "^0.8.2",
+    "@upstash/qstash": "^0.3.6",
     "dotenv": "^16.0.3",
     "jose": "^4.13.1",
     "solid-js": "^1.7.2",
