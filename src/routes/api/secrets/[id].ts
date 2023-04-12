@@ -57,8 +57,10 @@ export async function POST(event: APIEvent) {
       if (signingKey = undefined) {
         signingKey = await getSigningKeys();
       }
+      console.log(signingKey);
       const secret = new TextEncoder().encode((signingKey!.current));
-      const {payload, protectedHeader} = await jwtVerify(signature, secret)
+      console.log(secret);
+      const {payload, protectedHeader} = await jwtVerify(signature, secret);
       console.log(payload);
       console.log(protectedHeader);  
     }
