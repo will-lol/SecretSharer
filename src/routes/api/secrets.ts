@@ -39,6 +39,6 @@ export async function POST(event: APIEvent) {
       },
     }
   );
-  console.log(resultScheduleDelete);
+  console.log(await resultScheduleDelete.text());
   return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
 }
