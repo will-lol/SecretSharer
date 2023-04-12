@@ -3,10 +3,11 @@ import "dotenv/config";
 import { connect } from "@planetscale/database";
 import { z } from "zod";
 
-const config = {
+export const config = {
   host: process.env.DATABASE_HOST,
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
+  runtime: 'edge'
 };
 
 const dbReturn = z.object({
@@ -28,4 +29,17 @@ export async function GET({ params }: APIEvent) {
   }
 
   return new Response("ID not found", {status: 404})
+}
+
+export async function POST(event: APIEvent) {
+  const params = event.params;
+  console.log(event);
+  const parameter = params.id;
+  const conn = connect(config);
+  const resultsDelete = await conn.execute("DELETE FROM Secrets WHERE SecretID=\"" + parameter + "\"");
+  if (resultsDelete.rowsAffected == 1) {
+    return new Response("Success", {status: 200});
+  } else {
+    return new Response("ID not found", {status: 404});
+  }
 }
