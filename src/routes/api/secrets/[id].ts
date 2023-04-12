@@ -17,8 +17,6 @@ const dbReturn = z.object({
 });
 
 const tokenShape = z.object({ current: z.string(), next: z.string() });
-let signingKey: ReturnType<typeof tokenShape.parse> | undefined = undefined;
-
 const res = fetch("https://qstash.upstash.io/v1/keys", {headers: { Authorization: `Bearer ${process.env.QSTASH_TOKEN}` }}).then((res) => res.json()).then((res) => tokenShape.parse(res));
 
 export async function GET({ params }: APIEvent) {
@@ -44,8 +42,7 @@ export async function GET({ params }: APIEvent) {
 export async function POST(event: APIEvent) {
   console.log(JSON.stringify(event));
   const params = event.params;
-  await res;
-  const keys = tokenShape.safeParse(signingKey);
+  const keys = tokenShape.safeParse(await res);
   let r: Receiver
   if (keys.success) {
     r = new Receiver({
