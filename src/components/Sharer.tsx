@@ -181,7 +181,9 @@ export default function Sharer() {
           </Match>
           <Match when={submitState() == "submitted"}>
             <div class="absolute text-gray-600 dark:text-gray-100 max-w-sm text-center break-all m-4">
-              {link()}
+              <div class="whitespace-nowrap overflow-x-scroll p-4 max-w-lg relative">
+                <input type="text" value={link()} onClick={(ev) => {ev.currentTarget.select()}} class="z-0 p-1"></input> 
+              </div>
             </div>
           </Match>
         </Switch>
