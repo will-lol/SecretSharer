@@ -29,16 +29,20 @@ export async function POST(event: APIEvent) {
     `INSERT INTO Secrets VALUES ("${UUID}", "${requestData}");`
   );
   console.log(results);
-  const resultScheduleDelete = await fetch(
-    `${process.env.QSTASH_URL}${process.env.ORIGIN}api/secrets/${UUID}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.QSTASH_TOKEN}`,
-        "Upstash-Delay": "5s",
-      },
+  if (results.rowsAffected == 1) {
+    const resultScheduleDelete = await fetch(
+      `${process.env.QSTASH_URL}${process.env.ORIGIN}api/secrets/${UUID}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.QSTASH_TOKEN}`,
+          "Upstash-Delay": "5s",
+        },
+      }
+    );
+    if (resultScheduleDelete.status == 200) {
+      return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
     }
-  );
-  console.log(await resultScheduleDelete.text());
-  return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
+  } 
+  return new Response("Internal server error", { status: 500 });
 }
