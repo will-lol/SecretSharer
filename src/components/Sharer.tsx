@@ -1,6 +1,7 @@
 import { createSignal, createEffect, Switch, Match, Show } from "solid-js";
 import { createFileUploader, UploadFile } from "@solid-primitives/upload";
 import { response } from "../routes/api/secrets";
+import A from "../components/A";
 
 interface payload {
   type: "file" | "text";
@@ -155,14 +156,13 @@ export default function Sharer() {
                   <Match when={!filesValidator(files())}>
                     <div class="text-center">
                       Click the text box or{" "}
-                      <a
-                        class="underline text-black dark:text-white cursor-pointer"
+                      <A
                         onClick={() => {
                           selectFiles((files) => {});
                         }}
                       >
                         browse
-                      </a>{" "}
+                      </A>{" "}
                       for file
                     </div>
                     <div class="text-gray-500 dark:text-gray-400 text-center text-sm">
