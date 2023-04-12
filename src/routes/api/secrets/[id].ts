@@ -21,11 +21,17 @@ const tokenShape = z.object({ current: z.string(), next: z.string() });
 let signingKey: ReturnType<typeof tokenShape.parse> | undefined = undefined;
 
 async function getSigningKeys() {
-  return tokenShape.parse(
-    await fetch("https://qstash.upstash.io/v1/keys", {
-      headers: { Authorization: `Bearer ${process.env.QSTASH_TOKEN}` },
-    }).then((res) => res.json())
-  );
+  const req = await fetch("https://qstash.upstash.io/v1/keys", {
+    headers: { Authorization: `Bearer ${process.env.QSTASH_TOKEN}` },
+  })
+  console.log(req);
+  console.log(await req.text());
+  const parse = tokenShape.safeParse(await req.json());
+  if (parse.success) {
+    return parse.data;
+  } else {
+    throw("uhho");
+  }
 }
 
 export async function GET({ params }: APIEvent) {
