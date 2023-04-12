@@ -22,7 +22,7 @@ let signingKey: ReturnType<typeof tokenShape.parse> | undefined = undefined;
 
 async function getSigningKeys() {
   const req = await fetch("https://qstash.upstash.io/v1/keys", {
-    headers: { Authorization: `Bearer ${process.env.QSTASH_TOKEN}` },
+    headers: { "Authorization": `Bearer ${process.env.QSTASH_TOKEN}` },
   })
   console.log(req);
   console.log(await req.text());
