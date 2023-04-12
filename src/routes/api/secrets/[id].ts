@@ -17,7 +17,8 @@ const dbReturn = z.object({
 });
 
 const tokenShape = z.object({ current: z.string(), next: z.string() });
-let upstashSigningKey = await getSigningKeys();
+
+let signingKey: ReturnType<typeof tokenShape.parse> | undefined = undefined;
 
 async function getSigningKeys() {
   return tokenShape.parse(
@@ -53,13 +54,16 @@ export async function POST(event: APIEvent) {
   {
     const signature = event.request.headers.get("upstash-signature");
     if (signature) {
-      const secret = new TextEncoder().encode(upstashSigningKey.current);
+      if (signingKey = undefined) {
+        signingKey = await getSigningKeys();
+      }
+      const secret = new TextEncoder().encode((signingKey!.current));
       const {payload, protectedHeader} = await jwtVerify(signature, secret)
       console.log(payload);
       console.log(protectedHeader);  
     }
   }
-  
+
   const parameter = params.id;
   const conn = connect(config);
   const resultsDelete = await conn.execute(
