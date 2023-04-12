@@ -25,7 +25,6 @@ export async function POST(event: APIEvent) {
   }
   const requestData = requestFetch.data.data;
   const UUID = globalThis.crypto.randomUUID();
-  console.log(`${process.env.QSTASH_URL}${process.env.ORIGIN}api/secrets/${UUID}`);
   const conn = connect(config);
   const results = await conn.execute(
     `INSERT INTO Secrets VALUES ("${UUID}", "${requestData}");`
@@ -33,6 +32,7 @@ export async function POST(event: APIEvent) {
   if (results.rowsAffected == 1) {
     const c = new Client({token: process.env.QSTASH_TOKEN!});
     const res = await c.publish({url: `${process.env.ORIGIN}api/secrets/${UUID}`, delay: 5});
+    return new Response(JSON.stringify({UUID: UUID}), { status: 200 })
   } 
   return new Response("Internal server error", { status: 500 });
 }
