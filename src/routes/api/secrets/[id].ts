@@ -42,6 +42,7 @@ export async function GET({ params }: APIEvent) {
 }
 
 export async function POST(event: APIEvent) {
+  console.log(JSON.stringify(event));
   const params = event.params;
   await res;
   const keys = tokenShape.safeParse(signingKey);
