@@ -40,6 +40,7 @@ export async function POST(event: APIEvent) {
         },
       }
     );
+    console.log(resultScheduleDelete.status);
     return new Response(JSON.stringify({ UUID: UUID }), { status: 200 });
   } 
   return new Response("Internal server error", { status: 500 });
