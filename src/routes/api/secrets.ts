@@ -31,7 +31,7 @@ export async function POST(event: APIEvent) {
   );
   if (results.rowsAffected == 1) {
     const c = new Client({token: process.env.QSTASH_TOKEN!});
-    const res = await c.publish({url: `${process.env.ORIGIN}api/secrets/${UUID}`, delay: 5});
+    const res = await c.publish({url: `${process.env.ORIGIN}api/secrets/${UUID}`, delay: 86400});
     return new Response(JSON.stringify({UUID: UUID}), { status: 200 })
   } 
   return new Response("Internal server error", { status: 500 });

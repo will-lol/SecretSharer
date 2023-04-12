@@ -40,7 +40,6 @@ export async function GET({ params }: APIEvent) {
 }
 
 export async function POST(event: APIEvent) {
-  console.log(JSON.stringify(event));
   const params = event.params;
   const keys = tokenShape.safeParse(await res);
   let r: Receiver
@@ -50,13 +49,11 @@ export async function POST(event: APIEvent) {
       nextSigningKey: keys.data.next
     });
   } else {
-    console.log("Couldn't get keys");
     return new Response("Couldn't get keys", {status: 500});
   }
 
   const signature = event.request.headers.get("Upstash-Signature");
   if (!signature) {
-    console.log("Couldn't get signature")
     return new Response("Couldn't get signature", {status: 400});
   }
   const body = await event.request.text();
