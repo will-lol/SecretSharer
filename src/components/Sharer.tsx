@@ -44,6 +44,7 @@ export default function Sharer() {
   const [text, setText] = createSignal("");
   const [submitState, setSubmitState] = createSignal("idle");
   const [link, setLink] = createSignal("");
+  const [error, setError] = createSignal("");
 
   const { files, selectFiles } = createFileUploader({
     multiple: false,
@@ -88,7 +89,8 @@ export default function Sharer() {
       };
       payload = JSON.stringify(data);
     } else {
-      console.log("Something went wrong.");
+      setSubmitState("error");
+      setError("Couldn't validate your input — Please ensure your file is below 1MB or text is below 5000 characters");
       return;
     }
 
@@ -127,6 +129,9 @@ export default function Sharer() {
       navigator.clipboard.writeText(link.href);
       setLink(link.href);
       setSubmitState("submitted");
+    } else {
+      setSubmitState("error");
+      setError("Couldn't send request")
     }
   }
 
@@ -168,6 +173,11 @@ export default function Sharer() {
                     <div class="text-gray-500 dark:text-gray-400 text-center text-sm">
                       Max. 5000 characters or 1MB file
                     </div>
+                    <Show when={files()[0] && !filesValidator(files())}>
+                        <div class="text-red-600 dark:text-red-400 text-center text-sm">
+                          File too large.
+                        </div>
+                    </Show>
                   </Match>
                   <Match when={filesValidator(files())}>
                     <div class="flex justify-center items-center flex-col">
@@ -201,6 +211,9 @@ export default function Sharer() {
           <Match when={submitState() == "idle"}>Submit</Match>
           <Match when={submitState() == "submitted"}>
             Submitted and link copied!
+          </Match>
+          <Match when={submitState() == "error"}>
+            {error()}
           </Match>
         </Switch>
       </button>
