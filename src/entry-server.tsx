@@ -6,8 +6,9 @@ import {
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
+const redis = new Redis({url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN});
 const rateLimiter = new Ratelimit({
-  redis: new Redis({url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN}),
+  redis: redis,
   limiter: Ratelimit.slidingWindow(2, "10s"),
   prefix: "@upstash/ratelimit",
 });
@@ -17,6 +18,7 @@ export default createHandler(
     return async (event) => {
       const url = new URL(event.request.url);
       if (url.pathname.includes("/api/")) {
+        console.log("poo")
         const id = event.clientAddress;
         const rateLimitResult = await rateLimiter.limit(id);
 
