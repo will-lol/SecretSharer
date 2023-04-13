@@ -1,7 +1,8 @@
 import { APIEvent } from "solid-start";
+import { json } from "solid-start/api";
 import { z } from "zod";
-import { connect } from "@planetscale/database";
-import { Client } from "@upstash/qstash";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client } from "../../s3Client";
 
 const request = z.object({
   data: z.string(),
@@ -25,15 +26,11 @@ export async function POST(event: APIEvent) {
   }
   const requestData = requestFetch.data.data;
   const UUID = globalThis.crypto.randomUUID();
-  const conn = connect(config);
-  const results = await conn.execute(
-    `INSERT INTO Secrets VALUES ("${UUID}", "${requestData}");`
-  );
-  if (results.rowsAffected == 1) {
-    const c = new Client({token: process.env.QSTASH_TOKEN!});
-    const res = await c.publish({url: `${process.env.ORIGIN}api/secrets/${UUID}`, delay: 86400});
-    return new Response(JSON.stringify({UUID: UUID}), { status: 200 })
-  } 
-  return new Response("Internal server error", { status: 500 });
+  try {
+    await s3Client.send(new PutObjectCommand({Bucket: process.env.S3_BUCKET_ID, Body: requestData, Key: UUID}));
+    return json({UUID: UUID});
+  } catch(err) {
+    return new Response("Internal server error", { status: 500 });
+  }
 }
 

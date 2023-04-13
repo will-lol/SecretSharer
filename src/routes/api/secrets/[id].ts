@@ -1,8 +1,8 @@
 import { APIEvent, json } from "solid-start/api";
 import "dotenv/config";
-import { connect } from "@planetscale/database";
 import { z } from "zod";
-import { Receiver } from "@upstash/qstash";
+import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { s3Client } from "../../../s3Client";
 
 export const config = {
   host: process.env.DATABASE_HOST,
@@ -16,63 +16,24 @@ const dbReturn = z.object({
   Data: z.string(),
 });
 
-const tokenShape = z.object({ current: z.string(), next: z.string() });
-const res = fetch("https://qstash.upstash.io/v1/keys", {headers: { Authorization: `Bearer ${process.env.QSTASH_TOKEN}` }}).then((res) => res.json()).then((res) => tokenShape.parse(res));
-
 export async function GET({ params }: APIEvent) {
-  const parameter = params.id;
-  const conn = connect(config);
-  const results = await conn.execute(
-    'SELECT * FROM Secrets WHERE SecretID="' + parameter + '"'
-  );
-  const resultsDelete = await conn.execute(
-    'DELETE FROM Secrets WHERE SecretID="' + parameter + '"'
-  );
-
-  if (results.rows[0] && resultsDelete.rowsAffected == 1) {
-    const resultFinal = dbReturn.safeParse(results.rows[0]);
-    if (resultFinal.success) {
-      return json(resultFinal.data);
+  const UUID = params.id;
+  
+  let download: string | undefined;
+  try {
+    download = await s3Client.send(new GetObjectCommand({Bucket: process.env.S3_BUCKET_ID, Key: UUID})).then((res) => res.Body?.transformToString());
+    if (download == undefined) {
+      throw("Object undefined");
     }
+  } catch {
+    return new Response("Couldn't fetch object", {status: 404});
+  }
+  try {
+    await s3Client.send(new DeleteObjectCommand({Bucket: process.env.S3_BUCKET_ID, Key: UUID}));
+  } catch {
+    return new Response("Couldn't delete object", {status: 500});
   }
 
-  return new Response("ID not found", { status: 404 });
-}
-
-export async function POST(event: APIEvent) {
-  const params = event.params;
-  const keys = tokenShape.safeParse(await res);
-  let r: Receiver
-  if (keys.success) {
-    r = new Receiver({
-      currentSigningKey: keys.data.current,
-      nextSigningKey: keys.data.next
-    });
-  } else {
-    return new Response("Couldn't get keys", {status: 500});
-  }
-
-  const signature = event.request.headers.get("Upstash-Signature");
-  if (!signature) {
-    return new Response("Couldn't get signature", {status: 400});
-  }
-  const body = await event.request.text();
-
-  const isValid = await r.verify({
-    signature: signature,
-    body: body
-  })
-
-  if (isValid) {
-    const parameter = params.id;
-    const conn = connect(config);
-    const resultsDelete = await conn.execute(
-      'DELETE FROM Secrets WHERE SecretID="' + parameter + '"'
-    );
-    if (resultsDelete.rowsAffected == 1) {
-      return new Response("Success", { status: 200 });
-    } else {
-      return new Response("ID not found", { status: 404 });
-    }
-  }
+  const returnObj = {SecretID: UUID, Data: download} as ReturnType<typeof dbReturn.parse>;
+  return json(returnObj);
 }

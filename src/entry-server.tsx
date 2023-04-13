@@ -15,9 +15,9 @@ const rateLimiter = new Ratelimit({
 export default createHandler(
   ({ forward }) => {
     return async event => {
+      console.log(event.clientAddress);
       const req = event.request;
       const id = req.headers.get("x-forwarded-for");
-      console.log(id);
       return forward(event);
     }
   },
