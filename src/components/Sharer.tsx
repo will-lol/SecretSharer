@@ -56,7 +56,7 @@ export default function Sharer() {
   function filesValidator(files: UploadFile[]): boolean {
     if (files.length != 1) {
       return false;
-    } else if (files[0].size < 10000000) {
+    } else if (files[0].size < 1000000) {
       return true;
     } else {
       return false;
