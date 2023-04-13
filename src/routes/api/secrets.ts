@@ -25,6 +25,9 @@ export async function POST(event: APIEvent) {
     return new Response("Malformed request", { status: 400 });
   }
   const requestData = requestFetch.data.data;
+  if (requestData.length > 20000000) {
+    return new Response("File too large", { status: 400 });
+  }
   const UUID = globalThis.crypto.randomUUID();
   try {
     await s3Client.send(new PutObjectCommand({Bucket: process.env.S3_BUCKET_ID, Body: requestData, Key: UUID}));

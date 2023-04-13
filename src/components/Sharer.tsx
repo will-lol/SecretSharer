@@ -56,7 +56,7 @@ export default function Sharer() {
   function filesValidator(files: UploadFile[]): boolean {
     if (files.length != 1) {
       return false;
-    } else if (files[0].size < 5000) {
+    } else if (files[0].size < 10000) {
       return true;
     } else {
       return false;
@@ -166,7 +166,7 @@ export default function Sharer() {
                       for file
                     </div>
                     <div class="text-gray-500 dark:text-gray-400 text-center text-sm">
-                      Max. 5000 characters or 5KB file
+                      Max. 5000 characters or 10MB file
                     </div>
                   </Match>
                   <Match when={filesValidator(files())}>
