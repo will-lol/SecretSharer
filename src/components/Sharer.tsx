@@ -1,6 +1,5 @@
-import { createSignal, createEffect, Switch, Match, Show } from "solid-js";
+import { createSignal, Switch, Match, Show } from "solid-js";
 import { createFileUploader, UploadFile } from "@solid-primitives/upload";
-import { response } from "../routes/api/secrets";
 import A from "../components/A";
 
 interface payload {
