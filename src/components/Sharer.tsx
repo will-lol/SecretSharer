@@ -166,7 +166,7 @@ export default function Sharer() {
                       for file
                     </div>
                     <div class="text-gray-500 dark:text-gray-400 text-center text-sm">
-                      Max. 5000 characters or 10MB file
+                      Max. 5000 characters or 1MB file
                     </div>
                   </Match>
                   <Match when={filesValidator(files())}>
