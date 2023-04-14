@@ -8,13 +8,6 @@ const request = z.object({
   data: z.string(),
 });
 
-export const config = {
-  host: process.env.DATABASE_HOST,
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-  runtime: "edge",
-};
-
 export const response = z.object({
   UUID: z.string(),
 });

@@ -4,13 +4,6 @@ import { z } from "zod";
 import { GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../../../s3Client";
 
-export const config = {
-  host: process.env.DATABASE_HOST,
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-  runtime: "edge",
-};
-
 const dbReturn = z.object({
   SecretID: z.string(),
   Data: z.string(),
