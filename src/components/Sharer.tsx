@@ -115,7 +115,7 @@ export default function Sharer() {
       iv: Array.from(iv),
       data: encryptedB64String,
     };
-
+    
     const result = await fetch("api/secrets", {
       method: "POST",
       body: JSON.stringify({ data: btoa(JSON.stringify(finalPayload)) }),
