@@ -19,7 +19,6 @@ export async function POST(event: APIEvent) {
   }
   const requestData = requestFetch.data.data;
   if (requestData.length > 4000000) {
-    console.log(requestData.length);
     return new Response("File too large", { status: 400 });
   }
   const UUID = globalThis.crypto.randomUUID();

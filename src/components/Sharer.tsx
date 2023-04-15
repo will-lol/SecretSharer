@@ -82,6 +82,7 @@ export default function Sharer() {
       payload = JSON.stringify(data);
     } else if (textValidator(textArea.value)) {
       const submittedText = textArea.value;
+      textArea.value = "";
       const data: payload = {
         type: "text",
         data: submittedText,
@@ -149,7 +150,7 @@ export default function Sharer() {
             }
           }}
           placeholder="Paste or type here"
-          class="disabled:placeholder-transparent disabled:text-transparent dark:bg-gray-800 peer w-full h-full border border-solid dark:border-black shadow-inner p-3"
+          class="disabled:placeholder-transparent dark:bg-gray-800 peer w-full h-full border border-solid dark:border-black shadow-inner p-3"
         ></textarea>
         <Switch>
           <Match when={submitState() == "idle"}>

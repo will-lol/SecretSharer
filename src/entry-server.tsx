@@ -18,7 +18,6 @@ export default createHandler(
     return async (event) => {
       const url = new URL(event.request.url);
       if (url.pathname.includes("/api/")) {
-        console.log("poo")
         const id = event.clientAddress;
         const rateLimitResult = await rateLimiter.limit(id);
 
