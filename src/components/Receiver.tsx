@@ -155,7 +155,7 @@ export default function Receiver() {
                 </div>
               </Match>
               <Match when={data().type == "text"}>
-                <pre class="w-full h-full font-sans break-words">{data().data}</pre>
+                <pre class="w-full h-full font-sans break-words whitespace-pre-wrap">{data().data}</pre>
               </Match>
             </Switch>
           </Match>
